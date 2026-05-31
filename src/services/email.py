@@ -11,4 +11,9 @@ def send_verification_email(email: str) -> None:
 def send_reset_password_email(email: str) -> None:
     """Print password reset link to console."""
     token = create_reset_password_token(email)
-    print(f"Reset password email for {email}: {settings.base_url}/api/auth/reset_password/{token}")
+    reset_url = f"{settings.base_url}/api/auth/reset_password/{token}"
+
+    print(f"Reset password email for {email}: {reset_url}")
+
+
+    

@@ -10,6 +10,7 @@ from src.repository import users as repository_users
 from src.schemas.user import PasswordResetConfirm, PasswordResetRequest, Token, UserCreate, UserResponse
 from src.services.auth import create_access_token, get_email_from_token, verify_password
 from src.services.email import send_reset_password_email, send_verification_email
+from src.services.auth import create_refresh_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -34,7 +35,12 @@ def login(body: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
     if not user.confirmed:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Email not confirmed")
     token = create_access_token({"sub": user.email}, timedelta(minutes=settings.access_token_expire_minutes))
-    return {"access_token": token, "token_type": "bearer"}
+    
+    access_token = create_access_token(
+    {"sub": user.email},
+    timedelta(minutes=settings.access_token_expire_minutes),)
+    refresh_token = create_refresh_token({"sub": user.email})
+    return {"access_token": access_token,"refresh_token": refresh_token,"token_type": "bearer",}
 
 
 @router.get("/confirmed_email/{token}")
@@ -67,3 +73,19 @@ def reset_password(body: PasswordResetConfirm, db: Session = Depends(get_db)):
     if not updated:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return {"message": "Password updated"}
+
+@router.post("/refresh", response_model=Token)
+def refresh_token(token: str):
+    email = get_email_from_token(token)
+
+    access_token = create_access_token(
+        {"sub": email},
+        timedelta(minutes=settings.access_token_expire_minutes),
+    )
+    new_refresh_token = create_refresh_token({"sub": email})
+
+    return {
+        "access_token": access_token,
+        "refresh_token": new_refresh_token,
+        "token_type": "bearer",
+    }

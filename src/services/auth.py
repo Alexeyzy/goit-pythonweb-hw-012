@@ -34,6 +34,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
 
+def create_refresh_token(data: dict) -> str:
+    return create_access_token(data, timedelta(days=7))
 
 def create_email_token(email: str) -> str:
     """Create email verification token."""

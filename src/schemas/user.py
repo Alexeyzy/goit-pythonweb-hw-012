@@ -24,10 +24,10 @@ class UserResponse(BaseModel):
 
 class Token(BaseModel):
     """JWT token response schema."""
-
+    
     access_token: str
+    refresh_token: str
     token_type: str
-
 
 class PasswordResetRequest(BaseModel):
     """Password reset request schema."""
